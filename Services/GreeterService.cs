@@ -1,3 +1,4 @@
+using EKomplet.Generated.gRPC.greet;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using System;

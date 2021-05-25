@@ -43,9 +43,13 @@
         "netcoreapp3.1": {
           "targetAlias": "netcoreapp3.1",
           "dependencies": {
+            "Google.Protobuf": {
+              "target": "Package",
+              "version": "[3.17.1, )"
+            },
             "Grpc.AspNetCore": {
               "target": "Package",
-              "version": "[2.27.0, )"
+              "version": "[2.37.0, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
