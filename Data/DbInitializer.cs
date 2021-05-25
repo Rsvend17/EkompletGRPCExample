@@ -9,7 +9,7 @@ namespace EkompletGRPCExample.Data
     public class DbInitializer
     {
 
-        public static void Initialize(DatabaseContext context)
+        public static bool Initialize(DatabaseContext context)
         {
             if (context.Database.EnsureCreated())
             {
@@ -25,6 +25,12 @@ namespace EkompletGRPCExample.Data
 
                 context.Salesmen.AddRange(salesmen);
             }
+
+            if(context.SaveChanges() == 0)
+            {
+                return false;
+            }
+            else { return true; }
 
             
         }

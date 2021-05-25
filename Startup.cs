@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System;
+using EkompletGRPCExample.Services;
+using Microsoft.Extensions.Logging;
 
 namespace EkompletGRPCExample
 {
@@ -36,14 +38,17 @@ namespace EkompletGRPCExample
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DatabaseContext context)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DatabaseContext context, ILogger<Startup> logger)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            DbInitializer.Initialize(context);
+
+            bool populated = DbInitializer.Initialize(context);
+            if (!populated)
+                logger.LogCritical("Did not populate database with sample data");
 
             // Match the requests to an endpoint.
             app.UseRouting();
@@ -52,7 +57,7 @@ namespace EkompletGRPCExample
             // This call adds the services to the endpoint, which makes it possible to call them. 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<GreeterService>();
+                endpoints.MapGrpcService<SalesmanService>();
 
                 endpoints.MapGet("/", async context =>
                 {
