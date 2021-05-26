@@ -8,6 +8,7 @@ namespace EkompletGRPCExample.Models
 {
     public class Salesman
     {
+        
         [Key]
         public int SalesmanID { get; set; }
         public int PhoneNumber { get; set; }
@@ -22,5 +23,6 @@ namespace EkompletGRPCExample.Models
         [RegularExpression(@"^[A-Z]+[a-zA-Z]*$")]
         [Required]
         public string LastName { get; set; }
+
     }
 }
