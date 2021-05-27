@@ -11,7 +11,6 @@ namespace EkompletGRPCExample.Data
     {
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
-
         }
 
         public virtual DbSet<Salesman> Salesmen { get; set; }

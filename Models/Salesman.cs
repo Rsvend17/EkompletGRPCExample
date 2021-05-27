@@ -8,21 +8,18 @@ namespace EkompletGRPCExample.Models
 {
     public class Salesman
     {
-        
-        [Key]
-        public int SalesmanID { get; set; }
+        [Key] public int SalesmanID { get; set; }
         public int PhoneNumber { get; set; }
-        [EmailAddress]
-        [Required]
-        public string Email { get; set; }
+        [EmailAddress] [Required] public string Email { get; set; }
+
         [StringLength(50)]
         [RegularExpression(@"^[A-Z]+[a-zA-Z]*$")]
         [Required]
         public string FirstName { get; set; }
+
         [StringLength(50)]
         [RegularExpression(@"^[A-Z]+[a-zA-Z]*$")]
         [Required]
         public string LastName { get; set; }
-
     }
 }

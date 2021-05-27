@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EKomplet.Generated.gRPC.RequestUtility;
 using EKomplet.Generated.gRPC.Salesman;
+using EkompletGRPCExample.Conversion;
 using EkompletGRPCExample.Data;
 using EkompletGRPCExample.Models;
 using Google.Protobuf.Collections;
@@ -24,12 +25,11 @@ namespace EkompletGRPCExample.Services
             _logger = logger;
         }
 
-        public override Task<RequestReplyWithSalesman> RequestSalesmanById(salesmanRequestById request, ServerCallContext context)
+        public override Task<RequestReplyWithSalesman> RequestSalesmanById(salesmanRequestById request,
+            ServerCallContext context)
         {
-
             if (string.IsNullOrEmpty(request.Id))
             {
-
                 _logger.LogDebug("[RequestListingById] request.ID is empty");
                 return Task.FromResult(new RequestReplyWithSalesman
                 {
@@ -44,7 +44,9 @@ namespace EkompletGRPCExample.Services
             Salesman salesmanResult;
             try
             {
-                salesmanResult = _databaseContext.Salesmen.FirstOrDefault(salesman => salesman.SalesmanID.ToString() == request.Id);
+                _logger.LogDebug("Finding the salesman in the database..");
+                salesmanResult =
+                    _databaseContext.Salesmen.FirstOrDefault(salesman => salesman.SalesmanID.ToString() == request.Id);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -59,41 +61,22 @@ namespace EkompletGRPCExample.Services
                 });
             }
 
-            if (salesmanResult?.PhoneNumber != null)
-            {
-                var salesmanMsg = new SalesmanMsg
-                {
-                    Email = salesmanResult?.Email,
-                    FirstName = salesmanResult?.FirstName,
-                    LastName = salesmanResult?.LastName,
-                    PhoneNumer = (uint) salesmanResult?.PhoneNumber,
-                    Id = (uint) salesmanResult?.SalesmanID,
-                };
-
-                return Task.FromResult(new RequestReplyWithSalesman
-                {
-                    Result = new RequestResult
-                    {
-                        Succeeded = true,
-                        Errors = { }
-                    },
-                    Salesman = salesmanMsg
-                });
-            }
-            _logger.LogError("[RequestSalesmanById] Could not find listing with ID: {ID}", request.Id);
+            var salesmanMsg = salesmanResult.ToSalesmanMsg();
+            _logger.LogDebug("Found salesman! Now sending to client...");
             return Task.FromResult(new RequestReplyWithSalesman
             {
                 Result = new RequestResult
                 {
-                    Succeeded = false,
-                    Errors = {"Could not find Salesman"}
-                }
+                    Succeeded = true,
+                    Errors = { }
+                },
+                Salesman = salesmanMsg
             });
         }
 
         public override Task<RequestReplySalesmen> RequestSalesmen(Empty request, ServerCallContext context)
         {
-
+            _logger.LogDebug("Finding all salesmen in database.");
             List<Salesman> salesmanResult;
             try
             {
@@ -111,21 +94,20 @@ namespace EkompletGRPCExample.Services
                     }
                 });
             }
-            
+
             var repeatedSalesmanMsgs = new RepeatedField<SalesmanMsg>();
-            
-            // TODO: Create converter for this. 
-            repeatedSalesmanMsgs.AddRange(salesmanResult.Select(l => l.));
+
+            _logger.LogDebug("Found all salesmen, now delivering them to client..");
+            repeatedSalesmanMsgs.AddRange(salesmanResult.Select(l => l.ToSalesmanMsg()));
             return Task.FromResult(new RequestReplySalesmen
             {
                 Result = new RequestResult
                 {
                     Succeeded = true,
-                    Errors ={}
+                    Errors = { }
                 },
                 Salesmen = {repeatedSalesmanMsgs}
             });
-
         }
     }
 }

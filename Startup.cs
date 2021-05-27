@@ -14,41 +14,41 @@ namespace EkompletGRPCExample
 {
     public class Startup
     {
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
         private IConfiguration Configuration { get; }
+
         // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
 
             // Adds the database.
             services.AddDbContextPool<DatabaseContext>(builder =>
-            {
-                var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ??
-                                       Configuration.GetConnectionString("DefaultConnection");
-                builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-            }
+                {
+                    var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ??
+                                           Configuration.GetConnectionString("DefaultConnection");
+                    builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                }
             );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DatabaseContext context, ILogger<Startup> logger)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DatabaseContext context,
+            ILogger<Startup> logger)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
+
+            if (context.Database.EnsureCreated())
             {
-                app.UseDeveloperExceptionPage();
+                logger.LogInformation("Filling Database with Data");
+                var populated = DbInitializer.Initialize(context, logger);
+                if (!populated) logger.LogError("Error when filling database up!");
             }
 
-
-            bool populated = DbInitializer.Initialize(context);
-            if (!populated)
-                logger.LogCritical("Did not populate database with sample data");
 
             // Match the requests to an endpoint.
             app.UseRouting();
@@ -59,10 +59,7 @@ namespace EkompletGRPCExample
             {
                 endpoints.MapGrpcService<SalesmanService>();
 
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Forkert adresse kald");
-                });
+                endpoints.MapGet("/", async context => { await context.Response.WriteAsync("Forkert adresse kald"); });
             });
         }
     }
